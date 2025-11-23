@@ -32,7 +32,7 @@ jobs:
       - name: Run Hoppscotch Collection and Generate XML Report
         run: |
           newman run hoppscotch/hoppscotch_collection.json \
-            --environment hoppscotch/hoppscotch_environment.json \
+            --environment hoppscotch_environment.json \
             --reporters cli,junitfull \
             --reporter-junitfull-export report.xml
 
