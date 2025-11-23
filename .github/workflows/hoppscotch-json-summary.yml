@@ -23,12 +23,9 @@ jobs:
         with:
           node-version: "22"
 
-      # Step 3: Install Hoppscotch CLI and Axios
-      - name: Install dependencies
-        run: |
-          npm install -g @hoppscotch/cli
-          npm init -y
-          npm install axios
+      # Step 3: Install Hoppscotch CLI
+      - name: Install Hoppscotch CLI
+        run: npm install -g @hoppscotch/cli
 
       # Step 4: Debug reporter flags
       - name: Debug Hoppscotch CLI info
@@ -37,7 +34,6 @@ jobs:
           hopp --help
           echo "=== HOPP TEST HELP ==="
           hopp test --help
-
       # Step 5: Run tests and try both reporter flags
       - name: Run Hoppscotch Tests
         run: |
@@ -54,7 +50,6 @@ jobs:
           fi
           echo "HOPP_EXIT_CODE=$?" >> $GITHUB_ENV
           set -e
-
       # Step 6: Upload report.xml artifact even if missing
       - name: Upload report.xml artifact
         if: always()
@@ -64,7 +59,7 @@ jobs:
           path: report.xml
           if-no-files-found: warn
 
-      # Step 7: Ensure report.xml exists
+      # Step 7: Check if report.xml exists
       - name: Ensure report.xml exists
         run: |
           if [ ! -f report.xml ]; then
@@ -73,7 +68,7 @@ jobs:
             exit 1
           else
             echo "✅ report.xml found"
-
+          fi
       # Step 8: Convert XML → JSON
       - name: Convert XML to JSON Summary
         shell: pwsh
@@ -110,7 +105,7 @@ jobs:
           }
           $output | ConvertTo-Json -Depth 10 | Set-Content 'hoppscotch-summary.json'
           Write-Host "Summary JSON created: hoppscotch-summary.json"
-
+          
       # Step 9: Upload JSON summary
       - name: Upload Summary JSON
         uses: actions/upload-artifact@v4
