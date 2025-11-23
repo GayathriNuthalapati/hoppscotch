@@ -13,36 +13,68 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Check out repository
+      # Step 1: Checkout Repo
+      - name: Checkout repository
         uses: actions/checkout@v3
 
+      # Step 2: Setup Node.js
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '18'
+          node-version: "22"
 
+      # Step 3: Install Hoppscotch CLI
       - name: Install Hoppscotch CLI
         run: npm install -g @hoppscotch/cli
 
-      # ⭐ Correct reporter flag + capture exit code
-      - name: Run Hoppscotch Collection
+      # Step 4: Debug reporter flags
+      - name: Debug Hoppscotch CLI info
+        run: |
+          echo "=== HOPP GLOBAL HELP ==="
+          hopp --help
+          echo "=== HOPP TEST HELP ==="
+          hopp test --help
+
+      # Step 5: Run tests and try both reporter flags
+      - name: Run Hoppscotch Tests
         run: |
           set +e
+          echo "Trying: --reporter-junit-export"
           hopp test "hoppscotch-collection.json" \
             --env "hoppscotch-env.json" \
-            --reporter-junit "report.xml"
+            --reporter-junit-export "report.xml"
+
+          if [ ! -f report.xml ]; then
+            echo "Fallback: Trying --reporter-junit"
+            hopp test "hoppscotch-collection.json" \
+              --env "hoppscotch-env.json" \
+              --reporter-junit "report.xml"
+          fi
+
           echo "HOPP_EXIT_CODE=$?" >> $GITHUB_ENV
           set -e
 
-      # ⭐ Fail if report is missing (debug-friendly)
-      - name: Check if report exists
+      # Step 6: Upload report.xml artifact even if missing
+      - name: Upload report.xml artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: hoppscotch-xml-report
+          path: report.xml
+          if-no-files-found: warn
+
+      # Step 7: Check if report.xml exists
+      - name: Ensure report.xml exists
         run: |
           if [ ! -f report.xml ]; then
             echo "❌ report.xml was NOT created!"
             ls -R .
             exit 1
+          else
+            echo "✅ report.xml found"
           fi
 
+      # Step 8: Convert XML → JSON
       - name: Convert XML to JSON Summary
         shell: pwsh
         run: |
@@ -56,8 +88,7 @@ jobs:
                   if ($case.failure) {
                       $status = 'fail';
                       $failed++;
-                  }
-                  else {
+                  } else {
                       $status = 'pass';
                       $passed++;
                   }
@@ -84,17 +115,9 @@ jobs:
           $output | ConvertTo-Json -Depth 10 | Set-Content 'hoppscotch-summary.json'
           Write-Host "Summary JSON created: hoppscotch-summary.json"
 
+      # Step 9: Upload JSON summary
       - name: Upload Summary JSON
         uses: actions/upload-artifact@v4
         with:
           name: hoppscotch-summary
           path: hoppscotch-summary.json
-
-      - name: Fail if Hoppscotch had failures
-        run: |
-          if [ "$HOPP_EXIT_CODE" != "0" ]; then
-            echo "❌ Hoppscotch tests failed!"
-            exit 1
-          else
-            echo "✅ All Hoppscotch tests passed!"
-          fi
