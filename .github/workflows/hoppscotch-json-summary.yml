@@ -17,11 +17,11 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v3
 
-      # Step 2: Set up Node.js
+      # Step 2: Set up Node.js 22 (required for File API used by hopp CLI)
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '18'
+          node-version: '22'
 
       # Step 3: Install Hoppscotch CLI
       - name: Install Hoppscotch CLI
@@ -76,7 +76,7 @@ jobs:
           $output | ConvertTo-Json -Depth 10 | Set-Content 'hoppscotch-summary.json'
           Write-Host "Summary JSON created: hoppscotch-summary.json"
 
-      # Step 6: Upload JSON report
+      # Step 6: Upload JSON summary as artifact
       - name: Upload Summary JSON
         uses: actions/upload-artifact@v4
         with:
