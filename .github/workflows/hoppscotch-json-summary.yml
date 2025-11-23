@@ -13,84 +13,57 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # Step 1: Checkout Repo
-      - name: Checkout repository
+      # Step 1: Checkout repo
+      - name: Check out repository
         uses: actions/checkout@v3
 
-      # Step 2: Setup Node.js
+      # Step 2: Set up Node.js
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: "22"
+          node-version: '18'
 
       # Step 3: Install Hoppscotch CLI
       - name: Install Hoppscotch CLI
         run: npm install -g @hoppscotch/cli
 
-      # Step 4: Debug reporter flags
-      - name: Debug Hoppscotch CLI info
+      # Step 4: Run Hoppscotch tests & generate JUnit XML
+      - name: Run Hoppscotch Collection
         run: |
-          echo "=== HOPP GLOBAL HELP ==="
-          hopp --help
-          echo "=== HOPP TEST HELP ==="
-          hopp test --help
-
-      # Step 5: Run tests and try both reporter flags
-      - name: Run Hoppscotch Tests
-        run: |
-          set +e
-          echo "Trying: --reporter-junit-export"
           hopp test "hoppscotch-collection.json" \
             --env "hoppscotch-env.json" \
-            --reporter-junit-export "report.xml"
+            --reporter-junit "report.xml"
 
-          if [ ! -f report.xml ]; then
-            echo "Fallback: Trying --reporter-junit"
-            hopp test "hoppscotch-collection.json" \
-              --env "hoppscotch-env.json" \
-              --reporter-junit "report.xml"
-          fi
-
-          echo "HOPP_EXIT_CODE=$?" >> $GITHUB_ENV
-          set -e
-
-      # Step 6: Upload report.xml artifact
-      - name: Upload report.xml artifact
-        if: always()
+      # Step 5: Upload report.xml so it never gets lost
+      - name: Upload Raw JUnit XML
         uses: actions/upload-artifact@v4
         with:
-          name: hoppscotch-xml-report
+          name: hoppscotch-report-xml
           path: report.xml
-          if-no-files-found: warn
 
-      # Step 7: Ensure report.xml exists
-      - name: Ensure report.xml exists
-        run: |
-          if [ ! -f report.xml ]; then
-            echo "❌ report.xml was NOT created!"
-            ls -R .
-            exit 1
-          else
-            echo "✅ report.xml found"
-          fi
-
-      # Step 8: Convert XML → JSON
+      # Step 6: Convert XML → JSON summary
       - name: Convert XML to JSON Summary
         shell: pwsh
         run: |
-          [xml]$xml = Get-Content 'report.xml';
-          $totalTests = 0; $passed = 0; $failed = 0; $totalRequests = 0; $results = @();
+          if (-not (Test-Path "report.xml")) {
+            Write-Error "report.xml not generated!"
+            exit 1
+          }
+
+          [xml]$xml = Get-Content 'report.xml'
+          $totalTests = 0; $passed = 0; $failed = 0; $totalRequests = 0; $results = @()
 
           foreach ($suite in $xml.testsuites.testsuite) {
-              $totalRequests++;
+              $totalRequests++
               foreach ($case in $suite.testcase) {
-                  $totalTests++;
+                  $totalTests++
                   if ($case.failure) {
-                      $status = 'fail';
-                      $failed++;
-                  } else {
-                      $status = 'pass';
-                      $passed++;
+                      $status = 'fail'
+                      $failed++
+                  }
+                  else {
+                      $status = 'pass'
+                      $passed++
                   }
 
                   $results += [PSCustomObject]@{
@@ -115,44 +88,41 @@ jobs:
           $output | ConvertTo-Json -Depth 10 | Set-Content 'hoppscotch-summary.json'
           Write-Host "Summary JSON created: hoppscotch-summary.json"
 
-      # Step 9: Upload JSON summary
+      # Step 7: Upload JSON summary artifact
       - name: Upload Summary JSON
         uses: actions/upload-artifact@v4
         with:
           name: hoppscotch-summary
           path: hoppscotch-summary.json
 
-      # Step 10: Send JSON summary to Datadog
-      - name: Send summary JSON to Datadog
+      # Step 8: Send JSON Summary to Datadog Logs
+      - name: Send Summary to Datadog Logs
         shell: pwsh
         env:
-          DD_API_KEY: ${{ secrets.DD_API_KEY }}  # store your API key in GitHub Secrets
+          DD_API_KEY: ${{ secrets.DD_API_KEY }}
         run: |
-          $summaryFolder = "./"  # working directory
-          $latestFile = Get-ChildItem $summaryFolder -Filter "hoppscotch-summary*.json" |
-                        Sort-Object LastWriteTime -Descending |
-                        Select-Object -First 1
-
-          if (-not $latestFile) {
-              Write-Error "No Hoppscotch summary JSON file found!"
-              exit
+          # Load summary JSON
+          if (-not (Test-Path "hoppscotch-summary.json")) {
+            Write-Error "hoppscotch-summary.json not found!"
+            exit 1
           }
 
-          $summary = Get-Content $latestFile.FullName -Raw | ConvertFrom-Json
+          $summary = Get-Content 'hoppscotch-summary.json' -Raw | ConvertFrom-Json
 
+          # Build request payload
           $payload = @(
               @{
                   ddsource = "hoppscotch"
                   service = "api-automation-tests"
-                  hostname = "hoppscotch-test"
+                  hostname = "github-actions"
                   message = "Hoppscotch Test Summary Report"
                   hoppscotch_summary = $summary
               }
           ) | ConvertTo-Json -Depth 15
 
           if (-not $env:DD_API_KEY) {
-              Write-Error "ERROR: DD_API_KEY environment variable is not set."
-              exit
+              Write-Error "DD_API_KEY environment variable is missing!"
+              exit 1
           }
 
           Invoke-RestMethod `
@@ -164,5 +134,4 @@ jobs:
               } `
               -Body $payload
 
-          Write-Host "Hoppscotch summary sent to Datadog successfully!"
-          Write-Host "File sent: $($latestFile.FullName)"
+          Write-Host "Successfully sent summary to Datadog."
