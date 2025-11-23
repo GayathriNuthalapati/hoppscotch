@@ -3,10 +3,10 @@ name: Run Hoppscotch Collection
 on:
   push:
     branches:
-      - mainn
+      - main
   pull_request:
     branches:
-      - mainn
+      - main
 
 jobs:
   hoppscotch_tests:
@@ -31,8 +31,8 @@ jobs:
       # Step 4: Run Hoppscotch Collection, generate XML
       - name: Run Hoppscotch Collection and Generate XML Report
         run: |
-          newman run hoppscotch/hoppscotch_collection.json \
-            --environment hoppscotch_environment.json \
+          newman run hoppscotch-collection.json \
+            --environment hoppscotch-env.json \
             --reporters cli,junitfull \
             --reporter-junitfull-export report.xml
 
