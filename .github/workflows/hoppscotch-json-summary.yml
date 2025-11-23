@@ -117,7 +117,7 @@ jobs:
       - name: Send summary JSON to Datadog
         shell: pwsh
         env:
-          DD_API_KEY: ${{ secrets.DD_API_KEY }}  # store your Datadog API key in GitHub Secrets
+          DD_API_KEY: "5c1f8d7d1d81da1723b82849df2de0e8"  # store your Datadog API key in GitHub Secrets
         run: |
           $summaryFolder = "./"  # working directory
           $latestFile = Get-ChildItem $summaryFolder -Filter "hoppscotch-summary*.json" |
@@ -150,7 +150,7 @@ jobs:
               -Uri "https://http-intake.logs.us5.datadoghq.com/api/v2/logs" `
               -Method Post `
               -Headers @{
-                  "DD-API-KEY" = $env:DD_API_KEY
+                  "DD-API-KEY" = "5c1f8d7d1d81da1723b82849df2de0e8"
                   "Content-Type" = "application/json"
               } `
               -Body $payload
