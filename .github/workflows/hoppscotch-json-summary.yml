@@ -30,7 +30,7 @@ jobs:
           set +e
           hopp test "hoppscotch-collection.json" \
             --env "hoppscotch-env.json" \
-            --reporter-junit-export "report.xml"
+            --reporter-junit "report.xml"
           echo "HOPP_EXIT_CODE=$?" >> $GITHUB_ENV
           set -e
 
