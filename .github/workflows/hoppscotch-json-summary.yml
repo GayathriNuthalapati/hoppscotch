@@ -54,7 +54,7 @@ jobs:
           echo "HOPP_EXIT_CODE=$?" >> $GITHUB_ENV
           set -e
 
-      # Step 6: Upload report.xml artifact even if missing
+      # Step 6: Upload report.xml artifact
       - name: Upload report.xml artifact
         if: always()
         uses: actions/upload-artifact@v4
@@ -63,7 +63,7 @@ jobs:
           path: report.xml
           if-no-files-found: warn
 
-      # Step 7: Check if report.xml exists
+      # Step 7: Ensure report.xml exists
       - name: Ensure report.xml exists
         run: |
           if [ ! -f report.xml ]; then
@@ -121,3 +121,48 @@ jobs:
         with:
           name: hoppscotch-summary
           path: hoppscotch-summary.json
+
+      # Step 10: Send JSON summary to Datadog
+      - name: Send summary JSON to Datadog
+        shell: pwsh
+        env:
+          DD_API_KEY: ${{ secrets.DD_API_KEY }}  # store your API key in GitHub Secrets
+        run: |
+          $summaryFolder = "./"  # working directory
+          $latestFile = Get-ChildItem $summaryFolder -Filter "hoppscotch-summary*.json" |
+                        Sort-Object LastWriteTime -Descending |
+                        Select-Object -First 1
+
+          if (-not $latestFile) {
+              Write-Error "No Hoppscotch summary JSON file found!"
+              exit
+          }
+
+          $summary = Get-Content $latestFile.FullName -Raw | ConvertFrom-Json
+
+          $payload = @(
+              @{
+                  ddsource = "hoppscotch"
+                  service = "api-automation-tests"
+                  hostname = "hoppscotch-test"
+                  message = "Hoppscotch Test Summary Report"
+                  hoppscotch_summary = $summary
+              }
+          ) | ConvertTo-Json -Depth 15
+
+          if (-not $env:DD_API_KEY) {
+              Write-Error "ERROR: DD_API_KEY environment variable is not set."
+              exit
+          }
+
+          Invoke-RestMethod `
+              -Uri "https://http-intake.logs.us5.datadoghq.com/api/v2/logs" `
+              -Method Post `
+              -Headers @{
+                  "DD-API-KEY" = $env:DD_API_KEY
+                  "Content-Type" = "application/json"
+              } `
+              -Body $payload
+
+          Write-Host "Hoppscotch summary sent to Datadog successfully!"
+          Write-Host "File sent: $($latestFile.FullName)"
