@@ -1,0 +1,196 @@
+{
+  "v": 10,
+  "name": "newman-test",
+  "requests": [
+    {
+      "v": "16",
+      "name": "user-page2",
+      "method": "GET",
+      "endpoint": "https://<<host>>/<<basepath>>/users",
+      "params": [
+        {
+          "key": "page",
+          "value": "2",
+          "active": true,
+          "description": ""
+        }
+      ],
+      "headers": [
+        {
+          "key": "x-api-key",
+          "value": "reqres-free-v1",
+          "active": true,
+          "description": ""
+        }
+      ],
+      "preRequestScript": "// Set environment variables dynamically\r\npm.environment.set(\"host\", \"reqres.in\");\r\npm.environment.set(\"basepath\", \"api\");\r\n\r\n// Log to Postman Console\r\nconsole.log(\"Host:\", pm.environment.get(\"host\"));\r\nconsole.log(\"Base Path:\", pm.environment.get(\"basepath\"));\r\n",
+      "testScript": "// Basic test: Status Code\r\npm.test(\"Status code is 200\", function () {\r\n    pm.response.to.have.status(200);\r\n});\r\n\r\n// Validate response is JSON\r\npm.test(\"Response is JSON\", function () {\r\n    pm.response.to.be.json;\r\n});\r\n\r\n// Parse the response JSON\r\nlet json = pm.response.json();\r\n\r\n// Check 'page' key exists\r\npm.test(\"Response contains page field\", function () {\r\n    pm.expect(json).to.have.property(\"page\");\r\n});\r\n\r\n// Validate 'data' array exists\r\npm.test(\"Data array exists\", function () {\r\n    pm.expect(json).to.have.property(\"data\");\r\n    pm.expect(json.data).to.be.an(\"array\");\r\n});\r\n\r\n// Log first user email (if available)\r\nif (json.data && json.data.length > 0) {\r\n    console.log(\"First user email:\", json.data[0].email);\r\n}\r\n",
+      "auth": {
+        "authType": "inherit",
+        "authActive": true
+      },
+      "body": {
+        "contentType": null,
+        "body": null
+      },
+      "requestVariables": [],
+      "responses": {},
+      "_ref_id": "req_mi7r024m_5ea09068-4d70-4b6e-9311-d81d1e866580"
+    },
+    {
+      "v": "16",
+      "name": "user",
+      "method": "GET",
+      "endpoint": "https://<<host>>/<<basepath>>/users",
+      "params": [
+        {
+          "key": "page",
+          "value": "2",
+          "active": true,
+          "description": ""
+        }
+      ],
+      "headers": [
+        {
+          "key": "x-api-key",
+          "value": "reqres-free-v1",
+          "active": true,
+          "description": ""
+        }
+      ],
+      "preRequestScript": "// Set environment variables dynamically\r\npm.environment.set(\"host\", \"reqres.in\");\r\npm.environment.set(\"basepath\", \"api\");\r\n\r\n// Log to Postman Console\r\nconsole.log(\"Host:\", pm.environment.get(\"host\"));\r\nconsole.log(\"Base Path:\", pm.environment.get(\"basepath\"));\r\n",
+      "testScript": "// Basic test: Status Code\r\npm.test(\"Status code is 200\", function () {\r\n    pm.response.to.have.status(200);\r\n});\r\n\r\n// Validate response is JSON\r\npm.test(\"Response is JSON\", function () {\r\n    pm.response.to.be.json;\r\n});\r\n\r\n// Parse the response JSON\r\nlet json = pm.response.json();\r\n\r\n// Check 'page' key exists\r\npm.test(\"Response contains page field\", function () {\r\n    pm.expect(json).to.have.property(\"page\");\r\n});\r\n\r\n// Validate 'data' array exists\r\npm.test(\"Data array exists\", function () {\r\n    pm.expect(json).to.have.property(\"data\");\r\n    pm.expect(json.data).to.be.an(\"array\");\r\n});\r\n\r\n// Log first user email (if available)\r\nif (json.data && json.data.length > 0) {\r\n    console.log(\"First user email:\", json.data[0].email);\r\n}\r\n",
+      "auth": {
+        "authType": "inherit",
+        "authActive": true
+      },
+      "body": {
+        "contentType": null,
+        "body": null
+      },
+      "requestVariables": [],
+      "responses": {},
+      "_ref_id": "req_mi7r024m_42d44391-40d7-4c7f-8e7f-3d09e39087f7"
+    },
+    {
+      "v": "16",
+      "name": "unknown-user",
+      "method": "GET",
+      "endpoint": "https://<<host>>/<<basepath>>/unknown",
+      "params": [],
+      "headers": [
+        {
+          "key": "x-api-key",
+          "value": "reqres-free-v1",
+          "active": true,
+          "description": ""
+        }
+      ],
+      "preRequestScript": "// Automatically set the host and base path\r\npm.environment.set(\"host\", \"reqres.in\");\r\npm.environment.set(\"basepath\", \"api\");\r\n\r\n// Log what will be called\r\nconsole.log(\"Calling:\", `https://${pm.environment.get(\"host\")}/${pm.environment.get(\"basepath\")}/unknown`);\r\n",
+      "testScript": "let json = pm.response.json();\r\n\r\n// -------------------\r\n// ✔ Positive Test Cases\r\n// -------------------\r\n\r\n// Test 1: Status 200 OK\r\npm.test(\"Status code is 200\", function () {\r\n    pm.response.to.have.status(200);\r\n});\r\n\r\n// Test 2: Response must contain page info\r\npm.test(\"Page information is present\", function () {\r\n    pm.expect(json).to.have.property(\"page\");\r\n    pm.expect(json).to.have.property(\"total\");\r\n    pm.expect(json).to.have.property(\"total_pages\");\r\n});\r\n\r\n// Test 3: Data array exists\r\npm.test(\"Data array is present\", function () {\r\n    pm.expect(json.data).to.be.an(\"array\");\r\n});\r\n\r\n// Test 4: Validate first object structure\r\npm.test(\"First data element contains expected keys\", function () {\r\n    let item = json.data[0];\r\n    pm.expect(item).to.have.property(\"id\");\r\n    pm.expect(item).to.have.property(\"name\");\r\n    pm.expect(item).to.have.property(\"year\");\r\n    pm.expect(item).to.have.property(\"color\");\r\n    pm.expect(item).to.have.property(\"pantone_value\");\r\n});\r\n\r\n// Console log some values\r\nif (json.data.length > 0) {\r\n    console.log(\"First Color Name:\", json.data[0].name);\r\n    console.log(\"Total Items:\", json.data.length);\r\n}\r\n\r\n\r\n// -------------------\r\n// ❌ Negative Test Cases (Intentional Fails to validate your Newman/Postman report)\r\n// -------------------\r\n\r\n// Fail Case 1: Check wrong key (should not exist)\r\npm.test(\"Fail Case: Invalid key does NOT exist\", function () {\r\n    pm.expect(json).to.not.have.property(\"invalid_key\");\r\n});\r\n\r\n// Fail Case 2: Assert data array is empty (which is false)\r\npm.test(\"Fail Case: Data array is empty (Expected fail)\", function () {\r\n    pm.expect(json.data.length).to.eql(0);  // this will fail\r\n});\r\n\r\n// Fail Case 3: Checking incorrect support message\r\npm.test(\"Fail Case: Wrong support text (Expected fail)\", function () {\r\n    pm.expect(json.support.text).to.eql(\"Sample Wrong Text\");\r\n});\r\n",
+      "auth": {
+        "authType": "inherit",
+        "authActive": true
+      },
+      "body": {
+        "contentType": null,
+        "body": null
+      },
+      "requestVariables": [],
+      "responses": {},
+      "_ref_id": "req_mi7r024m_9d88a730-875b-40b3-87cd-8f6c33db1413"
+    },
+    {
+      "v": "16",
+      "name": "users",
+      "method": "GET",
+      "endpoint": "https://<<host>>/<<basepath>>/users",
+      "params": [],
+      "headers": [
+        {
+          "key": "x-api-key",
+          "value": "reqres-free-v1",
+          "active": true,
+          "description": ""
+        }
+      ],
+      "preRequestScript": "pm.environment.set(\"host\", \"reqres.in\");\r\npm.environment.set(\"basepath\", \"api\");\r\n\r\n// Log URL being called\r\nconsole.log(\"Calling:\", `https://${pm.environment.get(\"host\")}/${pm.environment.get(\"basepath\")}/users`);\r\n",
+      "testScript": "let json = pm.response.json();\r\n\r\n// -----------------------\r\n// ✔ SUCCESS TEST CASES\r\n// -----------------------\r\n\r\n// Test 1: Status code check\r\npm.test(\"Status code is 200\", function () {\r\n    pm.response.to.have.status(200);\r\n});\r\n\r\n// Test 2: Page information validation\r\npm.test(\"Page information is correct\", function () {\r\n    pm.expect(json).to.have.property(\"page\");\r\n    pm.expect(json).to.have.property(\"per_page\");\r\n    pm.expect(json).to.have.property(\"total\");\r\n    pm.expect(json).to.have.property(\"total_pages\");\r\n});\r\n\r\n// Test 3: Data array exists and is an array\r\npm.test(\"Data array exists\", function () {\r\n    pm.expect(json.data).to.be.an(\"array\");\r\n});\r\n\r\n// Test 4: Ensure 6 users are returned\r\npm.test(\"6 users are returned\", function () {\r\n    pm.expect(json.data.length).to.eql(6);\r\n});\r\n\r\n// Test 5: Validate fields of first user\r\npm.test(\"First user contains expected fields\", function () {\r\n    let user = json.data[0];\r\n    pm.expect(user).to.have.property(\"id\");\r\n    pm.expect(user).to.have.property(\"email\");\r\n    pm.expect(user).to.have.property(\"first_name\");\r\n    pm.expect(user).to.have.property(\"last_name\");\r\n    pm.expect(user).to.have.property(\"avatar\");\r\n});\r\n\r\n// Console logs\r\nconsole.log(\"Total Users:\", json.data.length);\r\nconsole.log(\"First User Email:\", json.data[0]?.email);\r\n\r\n\r\n// -----------------------\r\n// ❌ INTENTIONAL FAILURE CASES\r\n// -----------------------\r\n\r\n// Fail 1: Wrong total count (expected fail)\r\npm.test(\"Fail Case: Total users is 10 (Expected fail)\", function () {\r\n    pm.expect(json.total).to.eql(10);\r\n});\r\n\r\n// Fail 2: Data array is empty (expected fail)\r\npm.test(\"Fail Case: Data array is empty (Expected fail)\", function () {\r\n    pm.expect(json.data.length).to.eql(0);\r\n});\r\n\r\n// Fail 3: Metadata missing (expected fail)\r\npm.test(\"Fail Case: _meta block is missing (Expected fail)\", function () {\r\n    pm.expect(json).to.not.have.property(\"_meta\");\r\n});\r\n\r\n// Fail 4: Incorrect support text (expected fail)\r\npm.test(\"Fail Case: Support text is incorrect (Expected fail)\", function () {\r\n    pm.expect(json.support.text).to.eql(\"Wrong support text here\");\r\n});\r\n",
+      "auth": {
+        "authType": "inherit",
+        "authActive": true
+      },
+      "body": {
+        "contentType": null,
+        "body": null
+      },
+      "requestVariables": [],
+      "responses": {},
+      "_ref_id": "req_mi7r024n_8e3d6748-0519-4c29-a3c7-e6b70102c544"
+    },
+    {
+      "v": "16",
+      "name": "users-2",
+      "method": "GET",
+      "endpoint": "https://<<host>>/<<basepath>>/users/2",
+      "params": [],
+      "headers": [
+        {
+          "key": "x-api-key",
+          "value": "reqres-free-v1",
+          "active": true,
+          "description": ""
+        }
+      ],
+      "preRequestScript": "pm.environment.set(\"host\", \"reqres.in\");\r\npm.environment.set(\"basepath\", \"api\");\r\n\r\nconsole.log(\"Calling:\", `https://${pm.environment.get(\"host\")}/${pm.environment.get(\"basepath\")}/users/2`);\r\n",
+      "testScript": "let json = pm.response.json();\r\n\r\n// -----------------------\r\n// ✔ SUCCESS TEST CASES\r\n// -----------------------\r\n\r\n// Test 1: Status Code\r\npm.test(\"Status code is 200\", function () {\r\n    pm.response.to.have.status(200);\r\n});\r\n\r\n// Test 2: Response contains 'data' object\r\npm.test(\"Data object exists\", function () {\r\n    pm.expect(json).to.have.property(\"data\");\r\n    pm.expect(json.data).to.be.an(\"object\");\r\n});\r\n\r\n// Test 3: Validate all required user fields\r\npm.test(\"User object contains expected fields\", function () {\r\n    let user = json.data;\r\n    pm.expect(user).to.have.property(\"id\");\r\n    pm.expect(user).to.have.property(\"email\");\r\n    pm.expect(user).to.have.property(\"first_name\");\r\n    pm.expect(user).to.have.property(\"last_name\");\r\n    pm.expect(user).to.have.property(\"avatar\");\r\n});\r\n\r\n// Test 4: Validate specific user details (Janet)\r\npm.test(\"User ID matches the requested user\", function () {\r\n    pm.expect(json.data.id).to.eql(2);\r\n});\r\n\r\n// Test 5: Support block exists\r\npm.test(\"Support information is present\", function () {\r\n    pm.expect(json).to.have.property(\"support\");\r\n    pm.expect(json.support).to.have.property(\"url\");\r\n    pm.expect(json.support).to.have.property(\"text\");\r\n});\r\n\r\n// Test 6: _meta information exists\r\npm.test(\"Meta information exists\", function () {\r\n    pm.expect(json).to.have.property(\"_meta\");\r\n});\r\n\r\n// Console logs\r\nconsole.log(\"User Email:\", json.data.email);\r\nconsole.log(\"User First Name:\", json.data.first_name);\r\n\r\n\r\n// -----------------------\r\n// ❌ INTENTIONAL FAILURE TESTS\r\n// -----------------------\r\n\r\n// Fail 1: Wrong ID check\r\npm.test(\"Fail Case: User ID equals 10 (Expected fail)\", function () {\r\n    pm.expect(json.data.id).to.eql(10);\r\n});\r\n\r\n// Fail 2: Email mismatch (expected fail)\r\npm.test(\"Fail Case: Email is wrong (Expected fail)\", function () {\r\n    pm.expect(json.data.email).to.eql(\"test@gmail.com\")\r\n});",
+      "auth": {
+        "authType": "inherit",
+        "authActive": true
+      },
+      "body": {
+        "contentType": null,
+        "body": null
+      },
+      "requestVariables": [],
+      "responses": {},
+      "_ref_id": "req_mi7r024n_070fffb1-72fb-4ada-ac28-5e3c5bdcb988"
+    },
+    {
+      "v": "16",
+      "name": "unknown-2",
+      "method": "GET",
+      "endpoint": "https://<<host>>/<<basepath>>/unknown/2",
+      "params": [],
+      "headers": [
+        {
+          "key": "x-api-key",
+          "value": "reqres-free-v1",
+          "active": true,
+          "description": ""
+        }
+      ],
+      "preRequestScript": "pm.environment.set(\"host\", \"reqres.in\");\r\npm.environment.set(\"basepath\", \"api\");\r\n\r\nconsole.log(\"Calling:\", `https://${pm.environment.get(\"host\")}/${pm.environment.get(\"basepath\")}/unknown/2`);\r\n",
+      "testScript": "pm.test(\"Status code is 200\", function () {\r\n    pm.response.to.have.status(200);\r\n});\r\n\r\n// Validate response is JSON\r\npm.test(\"Response is JSON\", function () {\r\n    pm.response.to.be.json;\r\n});\r\n\r\n// Parse the response JSON\r\nlet json = pm.response.json();\r\n\r\n// Check 'data' object exists\r\npm.test(\"Data object exists\", function () {\r\n    pm.expect(json).to.have.property(\"data\");\r\n    pm.expect(json.data).to.be.an(\"object\");\r\n});\r\n\r\n// Validate required fields in data object\r\npm.test(\"Data contains required fields\", function () {\r\n    pm.expect(json.data).to.have.property(\"id\");\r\n    pm.expect(json.data).to.have.property(\"name\");\r\n    pm.expect(json.data).to.have.property(\"year\");\r\n    pm.expect(json.data).to.have.property(\"color\");\r\n    pm.expect(json.data).to.have.property(\"pantone_value\");\r\n});\r\n\r\n// Validate ID value\r\npm.test(\"Correct ID is returned\", function () {\r\n    pm.expect(json.data.id).to.eql(2);\r\n});\r\n\r\n// Check 'support' object exists\r\npm.test(\"Support object exists\", function () {\r\n    pm.expect(json).to.have.property(\"support\");\r\n});\r\n\r\n// Log first field for visibility\r\nconsole.log(\"Returned name:\", json.data.name);\r\n",
+      "auth": {
+        "authType": "inherit",
+        "authActive": true
+      },
+      "body": {
+        "contentType": null,
+        "body": null
+      },
+      "requestVariables": [],
+      "responses": {},
+      "_ref_id": "req_mi7r024n_a4e56e3f-3017-4055-abde-5ffc7084946b"
+    }
+  ],
+  "auth": {
+    "authType": "inherit",
+    "authActive": true
+  },
+  "headers": [],
+  "_ref_id": "coll_mi7r024n_34df45ce-55f6-49d6-ab6b-2d6e1710865d",
+  "variables": [],
+  "folders": []
+}

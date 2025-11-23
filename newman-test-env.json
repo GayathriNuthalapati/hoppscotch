@@ -1,0 +1,19 @@
+{
+  "id": "3qv37s83l4y",
+  "v": 2,
+  "name": "newman-test",
+  "variables": [
+    {
+      "key": "host",
+      "secret": false,
+      "initialValue": "reqres.in",
+      "currentValue": "reqres.in"
+    },
+    {
+      "key": "basepath",
+      "secret": false,
+      "initialValue": "api",
+      "currentValue": "api"
+    }
+  ]
+}
