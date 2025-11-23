@@ -30,8 +30,8 @@ jobs:
       # Step 4: Run Hoppscotch tests with JUnit XML report
       - name: Run Hoppscotch Collection
         run: |
-          hopp test "hoppscotch/newman-test.json" \
-            --env "hoppscotch/newman-test-env.json" \
+          hopp test "hoppscotch-collection.json" \
+            --env "hoppscotch-env.json" \
             --reporter-junit "report.xml"
 
       # Step 5: Convert XML → JSON
