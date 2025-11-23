@@ -2,7 +2,7 @@ name: Run Hoppscotch Collection
 
 on:
   push:
-    branches:
+    branches: 
       - main
   pull_request:
     branches:
@@ -13,30 +13,28 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # Step 1: Checkout repository
+      # Step 1: Checkout repo
       - name: Check out repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
-      # Step 2: Install Node.js
+      # Step 2: Set up Node.js
       - name: Set up Node.js
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v3
         with:
-          node-version: '16'
+          node-version: '18'
 
-      # Step 3: Install Newman + JUnit reporter
-      - name: Install Newman + JUnit reporter
+      # Step 3: Install Hoppscotch CLI
+      - name: Install Hoppscotch CLI
+        run: npm install -g @hoppscotch/cli
+
+      # Step 4: Run Hoppscotch tests with JUnit XML report
+      - name: Run Hoppscotch Collection
         run: |
-          npm install -g newman newman-reporter-junitfull
+          hopp test "hoppscotch/newman-test.json" \
+            --env "hoppscotch/newman-test-env.json" \
+            --reporter-junit "report.xml"
 
-      # Step 4: Run Hoppscotch Collection, generate XML
-      - name: Run Hoppscotch Collection and Generate XML Report
-        run: |
-          newman run hoppscotch-collection.json \
-            --environment hoppscotch-env.json \
-            --reporters cli,junitfull \
-            --reporter-junitfull-export report.xml
-
-      # Step 5: Convert XML → JSON with PowerShell
+      # Step 5: Convert XML → JSON
       - name: Convert XML to JSON Summary
         shell: pwsh
         run: |
@@ -78,8 +76,8 @@ jobs:
           $output | ConvertTo-Json -Depth 10 | Set-Content 'hoppscotch-summary.json'
           Write-Host "Summary JSON created: hoppscotch-summary.json"
 
-      # Step 6: Upload JSON as artifact
-      - name: Upload Test Summary JSON
+      # Step 6: Upload JSON report
+      - name: Upload Summary JSON
         uses: actions/upload-artifact@v4
         with:
           name: hoppscotch-summary
