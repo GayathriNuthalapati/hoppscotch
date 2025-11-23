@@ -1,0 +1,86 @@
+name: Run Hoppscotch Collection
+
+on:
+  push:
+    branches:
+      - mainn
+  pull_request:
+    branches:
+      - mainn
+
+jobs:
+  hoppscotch_tests:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Checkout repository
+      - name: Check out repository
+        uses: actions/checkout@v2
+
+      # Step 2: Install Node.js
+      - name: Set up Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '16'
+
+      # Step 3: Install Newman + JUnit reporter
+      - name: Install Newman + JUnit reporter
+        run: |
+          npm install -g newman newman-reporter-junitfull
+
+      # Step 4: Run Hoppscotch Collection, generate XML
+      - name: Run Hoppscotch Collection and Generate XML Report
+        run: |
+          newman run hoppscotch/hoppscotch_collection.json \
+            --environment hoppscotch/hoppscotch_environment.json \
+            --reporters cli,junitfull \
+            --reporter-junitfull-export report.xml
+
+      # Step 5: Convert XML → JSON with PowerShell
+      - name: Convert XML to JSON Summary
+        shell: pwsh
+        run: |
+          [xml]$xml = Get-Content 'report.xml';
+          $totalTests = 0; $passed = 0; $failed = 0; $totalRequests = 0; $results = @();
+
+          foreach ($suite in $xml.testsuites.testsuite) {
+              $totalRequests++;
+              foreach ($case in $suite.testcase) {
+                  $totalTests++;
+                  if ($case.failure) {
+                      $status = 'fail';
+                      $failed++;
+                  }
+                  else {
+                      $status = 'pass';
+                      $passed++;
+                  }
+
+                  $results += [PSCustomObject]@{
+                      testsuite = $suite.name
+                      testcase  = $case.name
+                      status    = $status
+                      message   = $(if ($case.failure) { $case.failure.message } else { '' })
+                  }
+              }
+          }
+
+          $output = [PSCustomObject]@{
+              summary = [PSCustomObject]@{
+                  total_tests    = $totalTests
+                  passed         = $passed
+                  failed         = $failed
+                  total_requests = $totalRequests
+              }
+              results = $results
+          }
+
+          $output | ConvertTo-Json -Depth 10 | Set-Content 'hoppscotch-summary.json'
+          Write-Host "Summary JSON created: hoppscotch-summary.json"
+
+      # Step 6: Upload JSON as artifact
+      - name: Upload Test Summary JSON
+        uses: actions/upload-artifact@v4
+        with:
+          name: hoppscotch-summary
+          path: hoppscotch-summary.json
